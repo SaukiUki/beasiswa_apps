@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables\Filters\SelectFilter;
 use App\Filament\Resources\PipResource\Pages;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\PipUsulan;
+use Filament\Tables\Actions\Action;
 
 class PipResource extends Resource
 {
@@ -155,10 +157,47 @@ public static function getEloquentQuery(): Builder
         ->defaultPaginationPageOption(25)
         ->paginationPageOptions([25, 50])
         ->actions([
-            Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make(),
-            Tables\Actions\DeleteAction::make(),
-        ]);
+    Tables\Actions\ViewAction::make(),
+    Tables\Actions\EditAction::make(),
+
+    Action::make('ajukan')
+        ->label('Ajukan Perubahan')
+        ->icon('heroicon-o-paper-airplane')
+        ->color('warning')
+
+        // hanya muncul jika belum ada usulan aktif
+        ->visible(fn ($record) =>
+            ! PipUsulan::where('nisn', $record->nisn)
+                ->whereIn('status_usulan', ['draft', 'diajukan'])
+                ->exists()
+        )
+
+        ->form([
+            Forms\Components\TextInput::make('nominal')
+                ->label('Nominal Usulan')
+                ->numeric()
+                ->required(),
+
+            Forms\Components\Textarea::make('catatan_admin')
+                ->label('Catatan Usulan')
+                ->required(),
+        ])
+
+            ->action(function ($record, array $data) {
+                PipUsulan::create([
+                    'nisn' => $record->nisn,
+                    'nama_siswa' => $record->nama_siswa,
+                    'nama_sekolah' => $record->nama_sekolah,
+                    'nominal' => $data['nominal'],
+                    'status' => $record->status,
+
+                    'status_usulan' => 'diajukan',
+                    'catatan_admin' => $data['catatan_admin'],
+                ]);
+            })
+
+            ->successNotificationTitle('Usulan berhasil diajukan'),
+    ]);
 }
 
     /* =========================================================
