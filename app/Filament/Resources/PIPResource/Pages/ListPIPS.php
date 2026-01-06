@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\PIPResource\Pages;
 
-use Filament\Actions;
-use App\Imports\PIPImport;
-use Filament\Forms\Components\Select;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Filament\Resources\PIPResource;
-use Illuminate\Support\Facades\Storage;
-use Filament\Notifications\Notification;
+use App\Imports\PIPImport;
+use Filament\Actions;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
-// ✅ GLOBAL WIDGETS (BENAR)
+// Widgets
 use App\Filament\Widgets\PIPStats;
 use App\Filament\Widgets\PIPSiswaPerKabupatenChart;
 use App\Filament\Widgets\PIPSiswaPerKecamatanChart;
@@ -29,14 +29,18 @@ class ListPIPS extends ListRecords
         return [
             Actions\CreateAction::make(),
 
-            Actions\Action::make('Import Excel')
+            // =============================
+            // IMPORT EXCEL (FIX FINAL)
+            // =============================
+            Actions\Action::make('importExcel')
                 ->label('Import Excel')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->form([
                     FileUpload::make('file')
                         ->label('Pilih File Excel')
                         ->disk('local')
-                        ->directory('livewire-tmp')
+                        ->directory('imports')
+                        ->maxSize(51200) 
                         ->required()
                         ->acceptedFileTypes([
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -45,27 +49,37 @@ class ListPIPS extends ListRecords
                         ]),
                 ])
                 ->action(function (array $data) {
+                    // path RELATIF (penting untuk queue)
                     $relativePath = $data['file'];
-                    $absolutePath = Storage::disk('local')->path($relativePath);
 
-                    if (!file_exists($absolutePath)) {
+                    // validasi tambahan (aman)
+                    if (! Storage::disk('local')->exists($relativePath)) {
                         Notification::make()
                             ->title('File tidak ditemukan')
-                            ->body("Path: {$absolutePath}")
                             ->danger()
                             ->send();
+
                         return;
                     }
 
-                    Excel::import(new PIPImport, $absolutePath);
+                    // ✅ IMPORT VIA QUEUE (WAJIB UNTUK FILE BESAR)
+                    Excel::queueImport(
+                        new PIPImport,
+                        $relativePath,
+                        'local'
+                    );
 
                     Notification::make()
-                        ->title('Import berhasil!')
+                        ->title('Import diproses')
+                        ->body('File berhasil diunggah. Import sedang berjalan di background.')
                         ->success()
                         ->send();
                 }),
 
-            Actions\Action::make('Export Excel')
+            // =============================
+            // EXPORT EXCEL (AMAN)
+            // =============================
+            Actions\Action::make('exportExcel')
                 ->label('Export Excel')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->form([
@@ -86,7 +100,9 @@ class ListPIPS extends ListRecords
                 ->action(function (array $data) {
                     $kabupaten = $data['kabupaten'];
 
-                    $fileName = 'export_pip_' . str($kabupaten)->slug() . '_' . now()->format('Ymd_His') . '.xlsx';
+                    $fileName = 'export_pip_' .
+                        str($kabupaten)->slug() . '_' .
+                        now()->format('Ymd_His') . '.xlsx';
 
                     return Excel::download(
                         new \App\Exports\PIPExport($kabupaten),
