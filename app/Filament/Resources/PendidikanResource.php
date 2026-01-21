@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Filters\SelectFilter;
@@ -57,7 +58,7 @@ class PendidikanResource extends Resource
                     ->label('Nama Kelurahan')
                     ->relationship('kelurahan', 'nama_kelurahan')
                     ->required(),
-                Forms\Components\TextArea::make('alamat')->columnSpanFull(),
+                Textarea::make('alamat')->columnSpanFull(),
 
             ]);
     }
