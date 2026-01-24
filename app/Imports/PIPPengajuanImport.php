@@ -9,36 +9,31 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithUpserts;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
-class PIPImport implements
+class PIPPengajuanImport implements
     ToModel,
     WithHeadingRow,
     WithChunkReading,
     WithBatchInserts,
+    WithUpserts,
     ShouldQueue
 {
+    /**
+     * Mapping 1 row Excel → 1 record PIP (PENGAJUAN)
+     */
     public function model(array $row)
     {
-        // 🔑 WAJIB
-        if (empty($row['pdid']) || empty($row['nisn'])) {
-            Log::warning('Skip row: PDID / NISN kosong', $row);
-            return null;
-        }
-
-        // ❌ TOLAK jika PDID sudah ada
-        if (PIP::where('pdid', trim($row['pdid']))->exists()) {
-            Log::info('Skip row: PDID sudah ada', [
-                'pdid' => $row['pdid'],
-                'nisn' => $row['nisn'],
-            ]);
+        // 🔑 NISN wajib
+        if (empty($row['nisn'])) {
             return null;
         }
 
         return new PIP([
-            'pdid' => trim($row['pdid']),
             'nisn' => trim($row['nisn']),
+            'pdid' => $row['pdid'] ?? null,
 
             'nama_siswa' => $row['nama_siswa'] ?? null,
             'nama_sekolah' => $row['nama_sekolah'] ?? null,
@@ -64,23 +59,24 @@ class PIPImport implements
 
             'nominal' => $this->parseNominal($row['nominal'] ?? null),
 
-            'tipe_sk' => $row['tipe_sk'] ?? null,
-            'nomor_sk' => $row['nomor_sk'] ?? null,
-            'nomor_sk_nominasi' => $row['nomor_sk_nominasi'] ?? null,
-            'tanggal_sk' => $this->parseTanggal($row['tanggal_sk'] ?? null),
-            'tanggal_sk_nominasi' => $this->parseTanggal($row['tanggal_sk_nominasi'] ?? null),
+            // ❌ SK & REKENING DIKOSONGKAN (BELUM TAHAPNYA)
+            'tipe_sk' => null,
+            'nomor_sk' => null,
+            'nomor_sk_nominasi' => null,
+            'tanggal_sk' => null,
+            'tanggal_sk_nominasi' => null,
 
             'tahap' => $row['tahap'] ?? null,
-            'tahap_nominasi' => $row['tahap_nominasi'] ?? null,
+            'tahap_nominasi' => null,
 
-            'virtual_account' => $row['virtual_account'] ?? null,
-            'virtual_account_nominasi' => $row['virtual_account_nominasi'] ?? null,
-            'no_rekening' => $row['no_rekening'] ?? null,
-            'bank' => $row['bank'] ?? null,
+            'virtual_account' => null,
+            'virtual_account_nominasi' => null,
+            'no_rekening' => null,
+            'bank' => null,
 
-            'tanggal_aktifasi' => $this->parseTanggal($row['tanggal_aktifasi'] ?? null),
-            'tanggal_mulai_pencairan' => $this->parseTanggal($row['tanggal_mulai_pecairan'] ?? null),
-            'tanggal_cair' => $this->parseTanggal($row['tanggal_cair'] ?? null),
+            'tanggal_aktifasi' => null,
+            'tanggal_mulai_pencairan' => null,
+            'tanggal_cair' => null,
 
             'no_kip' => $row['no_kip'] ?? null,
             'no_kks' => $row['no_kks'] ?? null,
@@ -90,15 +86,23 @@ class PIPImport implements
             'layak_pip' => $row['layak_pip'] ?? null,
             'nama_pengusul' => $row['nama_pengusul'] ?? null,
             'nama_pengusul_utama' => $row['nama_pengusul_utama'] ?? null,
-            'fase' => $row['fase'] ?? null,
+            'fase' => null,
 
-            'keterangan_tahap' => $row['keterangan_tahap'] ?? null,
-            'keterangan_pencairan' => $row['keterangan_pencairan'] ?? null,
-            'keterangan_tambahan' => $row['keterangan_tambahan'] ?? null,
+            'keterangan_tahap' => null,
+            'keterangan_pencairan' => null,
+            'keterangan_tambahan' => $row['keterangan'] ?? null,
 
-            'status_pengajuan' => 'draft',
-            'status' => $row['status'] ?? 'aktif',
+            // 🔑 KUNCI PENGAJUAN
+            'status' => null,
         ]);
+    }
+
+    /**
+     * UPSERT by NISN
+     */
+    public function uniqueBy()
+    {
+        return 'nisn';
     }
 
     public function chunkSize(): int
@@ -111,10 +115,14 @@ class PIPImport implements
         return 500;
     }
 
+    /* ================= HELPER ================= */
+
     private function parseTanggal($value)
     {
         try {
-            if (empty($value)) return null;
+            if (empty($value)) {
+                return null;
+            }
 
             if (is_numeric($value)) {
                 return Carbon::instance(
@@ -124,14 +132,17 @@ class PIPImport implements
 
             return Carbon::parse($value);
         } catch (\Throwable $e) {
-            Log::warning('Tanggal tidak valid', ['value' => $value]);
+            Log::warning('Tanggal tidak valid (Pengajuan)', ['value' => $value]);
             return null;
         }
     }
 
     private function parseNominal($value)
     {
-        if (empty($value)) return null;
+        if (empty($value)) {
+            return null;
+        }
+
         return (int) preg_replace('/[^0-9]/', '', $value);
     }
 }

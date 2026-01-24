@@ -18,6 +18,8 @@ class KipKuliahResource extends Resource
     protected static ?string $model = KipKuliah::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
+    protected static ?string $navigationGroup = 'KIP';
+    protected static ?int $navigationSort = 2;
     protected static ?string $label = 'KIP Kuliah';
 
     /* ================= FORM ================= */

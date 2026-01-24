@@ -67,14 +67,14 @@ class PendidikanResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nama_pimpinan')
+                TextColumn::make('nama_pimpinan')
                     ->label('Pimpinan')
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('no_hp_pimpinan')
+                TextColumn::make('no_hp_pimpinan')
                     ->label('No HP')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('email_instansi')
+                TextColumn::make('email_instansi')
                     ->label('Email')
                     ->toggleable(),
                 TextColumn::make('nama_instansi')->searchable(),

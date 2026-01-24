@@ -23,6 +23,7 @@ class MitraResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-shield-exclamation';
     protected static ?string $label = 'MITRA';
     protected static ?string $navigationGroup = 'DATA MITRA';
+        protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
