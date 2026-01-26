@@ -13,7 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         // Disable foreign key constraints for SQLite
-        DB::statement('PRAGMA foreign_keys = OFF');
+        $driver = DB::getDriverName();
+
+        if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        }
 
         // Drop the table and recreate with new structure
         Schema::dropIfExists('pendidikans');
@@ -35,7 +41,11 @@ return new class extends Migration
         });
 
         // Re-enable foreign key constraints
-        DB::statement('PRAGMA foreign_keys = ON');
+        if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = ON');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
     }
 
     /**
@@ -43,9 +53,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('PRAGMA foreign_keys = OFF');
+$driver = DB::getDriverName();
 
-        Schema::dropIfExists('pendidikans');
+        if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        }
 
         Schema::create('pendidikans', function (Blueprint $table) {
             $table->id();
@@ -61,7 +75,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        DB::statement('PRAGMA foreign_keys = ON');
+                if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = ON');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
     }
 };
 

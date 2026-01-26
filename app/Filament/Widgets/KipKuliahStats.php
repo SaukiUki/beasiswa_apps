@@ -8,14 +8,42 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class KipKuliahStats extends StatsOverviewWidget
 {
-  protected function getStats(): array
-  {
-    return [
-      Stat::make('Total Mahasiswa', KipKuliah::count()),
-      // Stat::make('Diajukan', KipKuliah::where('status_pengajuan', 'diajukan')->count())
-      //   ->color('warning'),
-      // Stat::make('Diterima', KipKuliah::where('status_pengajuan', 'diterima')->count())
-      //   ->color('success'),
-    ];
-  }
+    protected function getStats(): array
+    {
+        $tahunIni = now()->year;
+
+        return [
+            // 1️⃣ Total Laki-Laki
+            Stat::make(
+                'Total Laki-Laki',
+                KipKuliah::where('jenis_kelamin', 'L')->count()
+            )
+            ->icon('heroicon-o-user')
+            ->color('indigo'),
+
+            // 2️⃣ Total Perempuan
+            Stat::make(
+                'Total Perempuan',
+                KipKuliah::where('jenis_kelamin', 'P')->count()
+            )
+            ->icon('heroicon-o-user-group')
+            ->color('pink'),
+
+            // 3️⃣ Total Mahasiswa Penerima KIP
+            Stat::make(
+                'Total Mahasiswa Penerima KIP',
+                KipKuliah::count()
+            )
+            ->icon('heroicon-o-academic-cap')
+            ->color('success'),
+
+            // 4️⃣ Total Penerima Tahun Ini
+            Stat::make(
+                'Total Penerima Tahun Ini',
+                KipKuliah::where('tahun', $tahunIni)->count()
+            )
+            ->icon('heroicon-o-document-text')
+            ->color('warning'),
+        ];
+    }
 }

@@ -39,6 +39,7 @@ class PIP extends Model
         'tanggal_lahir',
         'nama_ayah',
         'nama_ibu',
+        'nomor_hp',
         'nominal',
         'tipe_sk',
         'nomor_sk',
@@ -72,7 +73,7 @@ class PIP extends Model
      * Casting tipe data
      */
     protected $casts = [
-                'tanggal_lahir' => 'date',
+        'tanggal_lahir' => 'date',
         'tanggal_sk' => 'date',
         'tanggal_sk_nominasi' => 'date',
         'tanggal_aktifasi' => 'date',

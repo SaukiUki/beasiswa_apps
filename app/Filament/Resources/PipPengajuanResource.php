@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PipPengajuanResource\Pages;
 use App\Filament\Resources\PipPengajuanResource\RelationManagers;
-use App\Models\Pip;
+use App\Models\PipUsulan;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PipPengajuanResource extends Resource
 {
-    protected static ?string $model = Pip::class;
+    protected static ?string $model = PipUsulan::class;
     protected static ?string $navigationIcon = 'heroicon-o-inbox-arrow-down';
     protected static ?string $navigationGroup = 'PIP';
     protected static ?int $navigationSort = 1;
@@ -122,12 +122,18 @@ class PipPengajuanResource extends Resource
         ]),
 
         /* ================= STATUS (KHUSUS EDIT) ================= */
-        Forms\Components\Section::make('Status')->schema([
-            Select::make('status')->options([
-                'sk' => 'SK',
-                'sk_lanjutan' => 'SK Lanjutan',
-            ])->required(),
-        ])->visible(fn ($record) => $record !== null),
+        Forms\Components\Section::make('Status Usulan')
+    ->schema([
+        Select::make('status_usulan')
+            ->label('Status Pengajuan')
+            ->options([
+                'draft' => 'Draft',
+                'diajukan' => 'Diajukan',
+            ])
+            ->required()
+            ->disabled(fn ($record) => $record?->status_usulan === 'diajukan'),
+    ])
+    ->visible(fn ($record) => $record !== null),
             ]);
     }
 
@@ -194,11 +200,11 @@ class PipPengajuanResource extends Resource
             ]);
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->whereNull('status'); // 🔑 PENGAJUAN SAJA
-    }
+        public static function getEloquentQuery(): Builder
+        {
+            return PipUsulan::query()->diajukan();
+        }
+
 
     public static function getRelations(): array
     {

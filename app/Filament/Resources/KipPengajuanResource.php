@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Pip;
+use App\Models\KipKuliah;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
@@ -15,24 +15,29 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
-use App\Filament\Resources\PipResource\Pages;
+use App\Filament\Resources\KipPengajuanResource\Pages;
 use Illuminate\Database\Eloquent\Builder;
 
-class PipResource extends Resource
+class KipPengajuanResource extends Resource
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    protected static ?string $label = 'Data Penerima PIP';
-    protected static ?string $navigationGroup = 'PIP';
-    protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'Data Penerima PIP';
+    protected static ?string $model = KipKuliah::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-inbox-arrow-down';
+    protected static ?string $label = 'Pengajuan KIP Kuliah';
+    protected static ?string $navigationGroup = 'KIP';
+    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationLabel = 'Data Pengajuan KIP';
 
     /**
-     * 🔑 HANYA DATA PENERIMA (STATUS SUDAH ADA)
+     * 🔎 HANYA DATA PENGAJUAN
      */
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereNotNull('status');
+            ->where(function ($q) {
+                $q->whereNull('status')
+                  ->orWhereIn('status', ['draft', 'diajukan']);
+            });
     }
 
     /* ================= FORM ================= */
@@ -40,24 +45,24 @@ class PipResource extends Resource
     {
         return $form->schema([
 
-            Forms\Components\Section::make('Identitas Siswa')->schema([
-                TextInput::make('pdid'),
+            Forms\Components\Section::make('Identitas Mahasiswa')->schema([
+                TextInput::make('pdid')->required()->unique(ignoreRecord: true),
                 TextInput::make('nisn'),
                 TextInput::make('nik'),
-                TextInput::make('nama_siswa'),
-                TextInput::make('nama_sekolah'),
+                TextInput::make('nama_mahasiswa')->required(),
+                TextInput::make('nama_perguruan_tinggi')->required(),
                 TextInput::make('npsn'),
             ])->columns(3),
 
-            Forms\Components\Section::make('Wilayah & Sekolah')->schema([
+            Forms\Components\Section::make('Wilayah & Akademik')->schema([
                 TextInput::make('provinsi'),
                 TextInput::make('kabupaten'),
                 TextInput::make('kecamatan'),
-                TextInput::make('jenjang'),
+                TextInput::make('jenjang')->required(),
                 TextInput::make('bentuk'),
                 TextInput::make('kelas'),
                 TextInput::make('rombel'),
-                TextInput::make('semester'),
+                TextInput::make('semester')->numeric(),
             ])->columns(4),
 
             Forms\Components\Section::make('Data Pribadi')->schema([
@@ -72,14 +77,18 @@ class PipResource extends Resource
                 TextInput::make('nomor_hp'),
             ])->columns(3),
 
-            Forms\Components\Section::make('Data Bantuan')->schema([
+            Forms\Components\Section::make('Pengajuan Bantuan')->schema([
                 TextInput::make('nominal')->numeric(),
-                TextInput::make('tahap'),
-                TextInput::make('tahap_nominasi'),
-                DatePicker::make('tanggal_aktifasi'),
-                DatePicker::make('tanggal_mulai_pencairan'),
-                DatePicker::make('tanggal_cair'),
-            ])->columns(3),
+                Select::make('status')
+                    ->options([
+                        'draft' => 'Draft',
+                        'diajukan' => 'Diajukan',
+                        'aktif' => 'Disetujui (Menjadi Penerima)',
+                        'tidak aktif' => 'Ditolak',
+                    ])
+                    ->default('draft')
+                    ->required(),
+            ])->columns(2),
 
             Forms\Components\Section::make('SK & Administrasi')->schema([
                 TextInput::make('tipe_sk'),
@@ -97,14 +106,20 @@ class PipResource extends Resource
                 TextInput::make('fase'),
             ])->columns(3),
 
+            Forms\Components\Section::make('Waktu Pencairan')->schema([
+                DatePicker::make('tanggal_aktifasi'),
+                DatePicker::make('tanggal_mulai_pencairan'),
+                DatePicker::make('tanggal_cair'),
+            ])->columns(3),
+
             Forms\Components\Section::make('Bantuan Sosial')->schema([
                 TextInput::make('no_kip'),
                 TextInput::make('no_kks'),
                 TextInput::make('no_kps'),
                 TextInput::make('no_pkh'),
                 Select::make('layak_pip')->options([
-                    'ya' => 'Ya',
-                    'tidak' => 'Tidak',
+                    1 => 'Ya',
+                    0 => 'Tidak',
                 ]),
             ])->columns(3),
 
@@ -118,32 +133,23 @@ class PipResource extends Resource
                 Textarea::make('keterangan_pencairan')->columnSpanFull(),
                 Textarea::make('keterangan_tambahan')->columnSpanFull(),
             ]),
+        ]);
+    }
 
-        Forms\Components\Section::make('Status')->schema([
-            Select::make('status')
-                ->options([
-                    'aktif' => 'Aktif',
-                    'tidak aktif' => 'Tidak Aktif',
-                ])
-                ->disabled(), // ⛔ status dikunci di penerima
-        ]),
-    ]);
-}
-
-/* ================= TABLE ================= */
-public static function table(Table $table): Table
+    /* ================= TABLE ================= */
+    public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('pdid')->searchable()->toggleable(),
-                TextColumn::make('nama_siswa')->toggleable(),
-                TextColumn::make('nama_sekolah')->toggleable(),
+                TextColumn::make('nama_mahasiswa')->searchable()->toggleable(),
+                TextColumn::make('nama_perguruan_tinggi')->toggleable(),
                 TextColumn::make('provinsi')->toggleable(),
                 TextColumn::make('kabupaten')->toggleable(),
                 TextColumn::make('kecamatan')->toggleable(),
                 TextColumn::make('nik')->searchable()->toggleable(),
                 TextColumn::make('nisn')->searchable()->toggleable(),
-                TextColumn::make('npsn')->searchable()->toggleable(),
+                TextColumn::make('npsn')->toggleable(),
                 TextColumn::make('kelas')->toggleable(),
                 TextColumn::make('rombel')->toggleable(),
                 TextColumn::make('semester')->toggleable(),
@@ -151,7 +157,7 @@ public static function table(Table $table): Table
                 TextColumn::make('bentuk')->toggleable(),
                 TextColumn::make('jenis_kelamin')->toggleable(),
                 TextColumn::make('tempat_lahir')->toggleable(),
-                TextColumn::make('tanggal_lahir')->toggleable(),
+                TextColumn::make('tanggal_lahir')->date()->toggleable(),
                 TextColumn::make('nama_ayah')->toggleable(),
                 TextColumn::make('nama_ibu')->toggleable(),
                 TextColumn::make('nomor_hp')->toggleable(),
@@ -181,51 +187,41 @@ public static function table(Table $table): Table
                 TextColumn::make('keterangan_tahap')->toggleable(),
                 TextColumn::make('keterangan_pencairan')->toggleable(),
                 TextColumn::make('keterangan_tambahan')->toggleable(),
-                TextColumn::make('status')->badge()->toggleable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->colors([
+                        'gray' => 'draft',
+                        'warning' => 'diajukan',
+                        'success' => 'aktif',
+                        'danger' => 'tidak aktif',
+                    ])
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('status')->options([
-                    'aktif' => 'Aktif',
-                    'tidak aktif' => 'Tidak Aktif',
+                    'draft' => 'Draft',
+                    'diajukan' => 'Diajukan',
+                    'aktif' => 'Disetujui',
+                    'tidak aktif' => 'Ditolak',
                 ]),
-
-                SelectFilter::make('fase')
-                    ->label('Fase')
-                    ->options(
-                        \App\Models\PIP::query()
-                            ->select('fase')
-                            ->distinct()
-                            ->whereNotNull('fase')
-                            ->orderBy('fase')
-                            ->pluck('fase', 'fase')
-                            ->toArray()
-                    )
-                    ->searchable(),
-
-                Filter::make('nisn_prefix')
-                    ->form([
-                        TextInput::make('nisn')->label('NISN diawali'),
-                    ])
-                    ->query(fn ($query, $data) =>
-                        filled($data['nisn'])
-                            ? $query->where('nisn', 'like', $data['nisn'] . '%')
-                            : $query
-                    ),
+                SelectFilter::make('jenjang')->options([
+                    'D3' => 'D3',
+                    'S1' => 'S1',
+                    'S2' => 'S2',
+                ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-
-                
             ]);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPips::route('/'),
-            'create' => Pages\CreatePip::route('/create'),
-            'edit' => Pages\EditPip::route('/{record}/edit'),
+            'index' => Pages\ListKipPengajuans::route('/'),
+            'create' => Pages\CreateKipPengajuan::route('/create'),
+            'edit' => Pages\EditKipPengajuan::route('/{record}/edit'),
         ];
     }
 }

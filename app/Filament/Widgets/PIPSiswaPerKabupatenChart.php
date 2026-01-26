@@ -6,7 +6,7 @@ use Filament\Widgets\ChartWidget;
 
 class PIPSiswaPerKabupatenChart extends ChartWidget
 {
-    protected static ?string $heading = 'Jumlah Siswa per Kabupaten';
+    protected static ?string $heading = 'Jumlah Penerima PIP per Kabupaten';
     protected static ?string $maxHeight = '250px';
     protected static ?string $pollingInterval = null;
 
