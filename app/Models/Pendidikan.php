@@ -10,15 +10,17 @@ class Pendidikan extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nama_instansi',
-        'jenjang_pendidikan',
+        'nama_sekolah',
+        'jenjang_instansi',
         'kota_id',
         'kecamatan_id',
-        'kelurahan_id',
         'alamat',
-        'nama_pimpinan',
-        'no_hp_pimpinan',
-        'email_instansi',
+        'nama_kepsek',
+        'nama_operator',
+        'no_hp_kepsek',
+        'no_hp_operator',
+        'jumlah_siswa',
+        'jumlah_pip_aspirasi',
     ];
 
     public function kota()
@@ -32,11 +34,6 @@ class Pendidikan extends Model
         return $this->belongsTo(Kecamatan::class);
     }
 
-    // Relasi ke model Kelurahan
-    public function kelurahan()
-    {
-        return $this->belongsTo(Kelurahan::class);
-    }
     public function guru()
     {
         return $this->hasMany(Guru::class);

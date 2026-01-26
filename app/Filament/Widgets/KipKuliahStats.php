@@ -12,10 +12,10 @@ class KipKuliahStats extends StatsOverviewWidget
   {
     return [
       Stat::make('Total Mahasiswa', KipKuliah::count()),
-      Stat::make('Diajukan', KipKuliah::where('status_pengajuan', 'diajukan')->count())
-        ->color('warning'),
-      Stat::make('Diterima', KipKuliah::where('status_pengajuan', 'diterima')->count())
-        ->color('success'),
+      // Stat::make('Diajukan', KipKuliah::where('status_pengajuan', 'diajukan')->count())
+      //   ->color('warning'),
+      // Stat::make('Diterima', KipKuliah::where('status_pengajuan', 'diterima')->count())
+      //   ->color('success'),
     ];
   }
 }

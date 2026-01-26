@@ -11,8 +11,9 @@ class PIPStats extends StatsOverviewWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Jumlah Siswa', PIP::count())
-                ->description('Total penerima PIP')
+
+            Stat::make('Jumlah Penerima PIP', PIP::count())
+                ->description('Total Penerima PIP')
                 ->icon('heroicon-o-user')
                 ->color('success'),
 

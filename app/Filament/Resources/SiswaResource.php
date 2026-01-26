@@ -115,10 +115,10 @@ class SiswaResource extends Resource
                     ->label('Institusi Pendidikan')
                     ->options(
                         fn(callable $get) =>
-                        $get('kelurahan_id')
-                            ? Pendidikan::where('kelurahan_id', $get('kelurahan_id'))
-                            ->orderBy('nama_instansi')
-                            ->pluck('nama_instansi', 'id')
+                        $get('kecamatan_id')
+                            ? Pendidikan::where('kecamatan_id', $get('kecamatan_id'))
+                            ->orderBy('nama_sekolah')
+                            ->pluck('nama_sekolah', 'id')
                             : []
                     )
                     ->searchable()
@@ -186,7 +186,7 @@ class SiswaResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('pendidikan.nama_instansi')
+                TextColumn::make('pendidikan.nama_sekolah')
                     ->label('Institusi Pendidikan')
                     ->searchable()
                     ->toggleable(),
@@ -219,7 +219,7 @@ class SiswaResource extends Resource
 
                 SelectFilter::make('pendidikan')
                     ->label('Institusi Pendidikan')
-                    ->relationship('pendidikan', 'nama_instansi'),
+                    ->relationship('pendidikan', 'nama_sekolah'),
 
                 SelectFilter::make('status')
                     ->label('Status')
@@ -256,3 +256,4 @@ class SiswaResource extends Resource
         ];
     }
 }
+

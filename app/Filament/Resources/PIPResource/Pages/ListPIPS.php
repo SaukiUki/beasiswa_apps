@@ -16,10 +16,25 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Filament\Widgets\PIPStats;
 use App\Filament\Widgets\PIPSiswaPerKabupatenChart;
 use App\Filament\Widgets\PIPSiswaPerKecamatanChart;
+use App\Filament\Widgets\PIPTotalPerFaseChart;
 
 class ListPIPS extends ListRecords
 {
     protected static string $resource = PIPResource::class;
+
+    /* =========================================================
+     * HEADER WIDGETS
+     * ========================================================= */
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PIPStats::class,
+            PIPSiswaPerKecamatanChart::class,
+            PIPSiswaPerKabupatenChart::class,
+            PIPTotalPerFaseChart::class,
+
+        ];
+    }
 
     /* =========================================================
      * HEADER ACTIONS
@@ -109,18 +124,6 @@ class ListPIPS extends ListRecords
                         $fileName
                     );
                 }),
-        ];
-    }
-
-    /* =========================================================
-     * HEADER WIDGETS
-     * ========================================================= */
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            PIPStats::class,
-            PIPSiswaPerKecamatanChart::class,
-            PIPSiswaPerKabupatenChart::class,
         ];
     }
 }

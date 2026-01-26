@@ -36,7 +36,7 @@ class GuruResource extends Resource
                 ->nullable(),
                 Forms\Components\Select::make('pendidikan_id')
                 ->label('Pendidikan')
-                ->relationship('pendidikan', 'nama_instansi') // Relasi ke model Pendidikan
+                ->relationship('pendidikan', 'nama_sekolah') // Relasi ke model Pendidikan
                 ->required(),
                 Select::make('kota_id')
                     ->label('Nama Kota')
@@ -80,7 +80,7 @@ class GuruResource extends Resource
                 ->label('NIP'),
             Tables\Columns\TextColumn::make('jenis_kelamin')
                 ->label('Jenis Kelamin'),
-            Tables\Columns\TextColumn::make('pendidikan.nama_instansi')
+            Tables\Columns\TextColumn::make('pendidikan.nama_sekolah')
                 ->label('Pendidikan')
                 ->sortable()
                 ->searchable(),
@@ -104,9 +104,9 @@ class GuruResource extends Resource
                 ->label('Alamat'),
             ])
             ->filters([
-                SelectFilter::make('pendidikan')
+            SelectFilter::make('pendidikan')
                 ->label('Nama Instansi')
-                ->relationship('pendidikan', 'nama_instansi'),
+                ->relationship('pendidikan', 'nama_sekolah'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

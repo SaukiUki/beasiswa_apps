@@ -187,6 +187,19 @@ public static function table(Table $table): Table
                     'tidak aktif' => 'Tidak Aktif',
                 ]),
 
+                SelectFilter::make('fase')
+                    ->label('Fase')
+                    ->options(
+                        \App\Models\PIP::query()
+                            ->select('fase')
+                            ->distinct()
+                            ->whereNotNull('fase')
+                            ->orderBy('fase')
+                            ->pluck('fase', 'fase')
+                            ->toArray()
+                    )
+                    ->searchable(),
+
                 Filter::make('nisn_prefix')
                     ->form([
                         TextInput::make('nisn')->label('NISN diawali'),

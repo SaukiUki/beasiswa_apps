@@ -24,42 +24,65 @@ class PendidikanResource extends Resource
 {
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
     protected static ?string $label = 'Daftar Sekolah/Kampus';
-    protected static ?string $recordTitleAttribute = 'nama_instansi';
+    protected static ?string $recordTitleAttribute = 'nama_sekolah';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('nama_pimpinan')
-                    ->label('Nama Pimpinan'),
-                TextInput::make('no_hp_pimpinan')
-                    ->label('No. HP Pimpinan')
-                    ->tel(),
-                TextInput::make('email_instansi')
-                    ->label('Email Instansi')
-                    ->email(),
-                TextInput::make('nama_instansi')->required(),
-                Select::make('jenjang_pendidikan')->options([
-                    'SD' => 'SEKOLAH DASAR',
-                    'SMP' => 'SEKOLAH MENENGAH PERTAMA',
-                    'SMA' => 'SEKOLAH MENENGAH AKHIR',
-                    'PERGURUAN TINGGI' => 'PERGURUAN TINGGI'
-                ])->required(),
-
+                TextInput::make('nama_sekolah')
+                    ->label('Nama Sekolah')
+                    ->required(),
+                
+                Forms\Components\Select::make('jenjang_instansi')
+                    ->label('Jenjang Instansi')
+                    ->options([
+                        'SD' => 'SEKOLAH DASAR',
+                        'SMP' => 'SEKOLAH MENENGAH PERTAMA',
+                        'SMA' => 'SEKOLAH MENENGAH AKHIR',
+                        'PERGURUAN TINGGI' => 'PERGURUAN TINGGI',
+                        'SLB' => 'SEKOLAH LUAR BIASA',
+                        'SMK' => 'SEKOLAH MENENGAH KEJURUAN',
+                    ])
+                    ->nullable(),
+                
                 Select::make('kota_id')
-                    ->label('Nama Kota')
+                    ->label('Nama Kota/Kabupaten')
                     ->relationship('kota', 'nama_kota')
                     ->required(),
+                
                 Select::make('kecamatan_id')
                     ->label('Nama Kecamatan')
                     ->relationship('kecamatan', 'nama_kecamatan')
                     ->required(),
-                Select::make('kelurahan_id')
-                    ->label('Nama Kelurahan')
-                    ->relationship('kelurahan', 'nama_kelurahan')
-                    ->required(),
-                Textarea::make('alamat')->columnSpanFull(),
-
+                
+                Textarea::make('alamat')
+                    ->label('Alamat')
+                    ->columnSpanFull(),
+                
+                TextInput::make('nama_kepsek')
+                    ->label('Nama Kepsek'),
+                
+                TextInput::make('no_hp_kepsek')
+                    ->label('No. HP Kepsek')
+                    ->tel(),
+                
+                TextInput::make('nama_operator')
+                    ->label('Nama Operator'),
+                
+                TextInput::make('no_hp_operator')
+                    ->label('No. HP Operator')
+                    ->tel(),
+                
+                TextInput::make('jumlah_siswa')
+                    ->label('Jumlah Siswa')
+                    ->numeric()
+                    ->default(0),
+                
+                TextInput::make('jumlah_pip_aspirasi')
+                    ->label('Jumlah Penerima PIP Aspirasi')
+                    ->numeric()
+                    ->default(0),
             ]);
     }
 
@@ -67,43 +90,68 @@ class PendidikanResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('nama_pimpinan')
-                    ->label('Pimpinan')
-                    ->toggleable(),
-
-                TextColumn::make('no_hp_pimpinan')
-                    ->label('No HP')
-                    ->toggleable(),
-                TextColumn::make('email_instansi')
-                    ->label('Email')
-                    ->toggleable(),
-                TextColumn::make('nama_instansi')->searchable(),
-                TextColumn::make('jenjang_pendidikan'),
+                TextColumn::make('nama_sekolah')
+                    ->label('Nama Sekolah')
+                    ->searchable()
+                    ->sortable(),
+                
+                TextColumn::make('jenjang_instansi')
+                    ->label('Jenjang')
+                    ->toggleable()
+                    ->sortable(),
+                
                 TextColumn::make('kota.nama_kota')
-                    ->label('Nama Kota')
+                    ->label('Kota/Kabupaten')
                     ->toggleable()
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
+                
                 TextColumn::make('kecamatan.nama_kecamatan')
-                    ->label('Nama Kecamatan')
+                    ->label('Kecamatan')
+                    ->toggleable()
+                    ->searchable()
+                    ->sortable(),
+                
+                TextColumn::make('alamat')
+                    ->label('Alamat')
+                    ->toggleable()
+                    ->limit(50),
+                
+                TextColumn::make('nama_kepsek')
+                    ->label('Nama Kepsek')
                     ->toggleable()
                     ->searchable(),
-                TextColumn::make('kelurahan.nama_kelurahan')
-                    ->label('Nama Kelurahan')
+                
+                TextColumn::make('no_hp_kepsek')
+                    ->label('No HP Kepsek')
+                    ->toggleable(),
+                
+                TextColumn::make('nama_operator')
+                    ->label('Nama Operator')
                     ->toggleable()
                     ->searchable(),
-                TextColumn::make('alamat'),
+                
+                TextColumn::make('no_hp_operator')
+                    ->label('No HP Operator')
+                    ->toggleable(),
+                
+                TextColumn::make('jumlah_siswa')
+                    ->label('Jumlah Siswa')
+                    ->toggleable()
+                    ->sortable(),
+                
+                TextColumn::make('jumlah_pip_aspirasi')
+                    ->label('PIP Aspirasi')
+                    ->toggleable()
+                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('kota')
-                    ->label('Nama Kota')
+                    ->label('Kota/Kabupaten')
                     ->relationship('kota', 'nama_kota'),
                 SelectFilter::make('kecamatan')
-                    ->label('Nama Kecamatan')
+                    ->label('Kecamatan')
                     ->relationship('kecamatan', 'nama_kecamatan'),
-                SelectFilter::make('kelurahan')
-                    ->label('Nama Kelurahan')
-                    ->relationship('kelurahan', 'nama_kelurahan')
-
             ])
             ->actions([
                 EditAction::make(),
@@ -132,3 +180,4 @@ class PendidikanResource extends Resource
         ];
     }
 }
+
