@@ -13,9 +13,18 @@ class KipKuliahStats extends StatsOverviewWidget
         $tahunIni = now()->year;
 
         return [
+
+                    // 3️⃣ Total Mahasiswa Penerima KIP
+            Stat::make(
+                'Total Mahasiswa Penerima KIP',
+                KipKuliah::count()
+            )
+            ->icon('heroicon-o-academic-cap')
+            ->color('success'),
+
             // 1️⃣ Total Laki-Laki
             Stat::make(
-                'Total Laki-Laki',
+                'Total  KIP Laki-Laki',
                 KipKuliah::where('jenis_kelamin', 'L')->count()
             )
             ->icon('heroicon-o-user')
@@ -23,19 +32,13 @@ class KipKuliahStats extends StatsOverviewWidget
 
             // 2️⃣ Total Perempuan
             Stat::make(
-                'Total Perempuan',
+                'Total KIP Perempuan',
                 KipKuliah::where('jenis_kelamin', 'P')->count()
             )
             ->icon('heroicon-o-user-group')
             ->color('pink'),
 
-            // 3️⃣ Total Mahasiswa Penerima KIP
-            Stat::make(
-                'Total Mahasiswa Penerima KIP',
-                KipKuliah::count()
-            )
-            ->icon('heroicon-o-academic-cap')
-            ->color('success'),
+
 
             // 4️⃣ Total Penerima Tahun Ini
             Stat::make(
