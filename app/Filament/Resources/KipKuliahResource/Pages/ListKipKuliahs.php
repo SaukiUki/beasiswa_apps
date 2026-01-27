@@ -6,7 +6,7 @@ use App\Filament\Resources\KipKuliahResource;
 use App\Exports\KIPKuliahTemplateExport;
 use App\Imports\KIPKuliahImport;
 use App\Exports\KIPKuliahExport;
-use App\Models\KIPKuliah;
+use App\Models\KipKuliah;
 
 use Filament\Actions;
 use Filament\Forms\Components\FileUpload;
@@ -101,7 +101,7 @@ class ListKipKuliahs extends ListRecords
                     Select::make('kabupaten')
                         ->label('Kabupaten')
                         ->options(
-                            KIPKuliah::query()
+                            KipKuliah::query()
                                 ->select('kabupaten')
                                 ->distinct()
                                 ->whereNotNull('kabupaten')
