@@ -95,38 +95,38 @@ class ListKipKuliahs extends ListRecords
              * EXPORT EXCEL
              * ============================= */
             Actions\Action::make('exportExcel')
-                ->label('Export Excel')
-                ->icon('heroicon-o-arrow-down-tray')
-                ->form([
-                    Select::make('kabupaten')
-                        ->label('Kabupaten')
-                        ->options(
-                            KipKuliah::query()
-                                ->select('kabupaten')
-                                ->distinct()
-                                ->whereNotNull('kabupaten')
-                                ->orderBy('kabupaten')
-                                ->pluck('kabupaten', 'kabupaten')
-                                ->toArray()
-                        )
-                        ->searchable()
-                        ->required(),
-                ])
-                ->action(function (array $data) {
+    ->label('Export Excel')
+    ->icon('heroicon-o-arrow-down-tray')
+    ->form([
+        Select::make('kab_kota_sekolah')
+            ->label('Kab / Kota Sekolah')
+            ->options(
+                KipKuliah::query()
+                    ->select('kab_kota_sekolah')
+                    ->distinct()
+                    ->whereNotNull('kab_kota_sekolah')
+                    ->orderBy('kab_kota_sekolah')
+                    ->pluck('kab_kota_sekolah', 'kab_kota_sekolah')
+                    ->toArray()
+            )
+            ->searchable()
+            ->required(),
+    ])
+    ->action(function (array $data) {
 
-                    $kabupaten = $data['kabupaten'];
+        $kabKota = $data['kab_kota_sekolah'];
 
-                    $fileName = 'export_kip_kuliah_' .
-                        str($kabupaten)->slug() . '_' .
-                        now()->format('Ymd_His') . '.xlsx';
+        $fileName = 'export_kip_kuliah_' .
+            str($kabKota)->slug() . '_' .
+            now()->format('Ymd_His') . '.xlsx';
 
-                    return Excel::download(
-                        new KIPKuliahExport($kabupaten),
-                        $fileName
-                    );
-                }),
+        return Excel::download(
+            new KIPKuliahExport($kabKota),
+            $fileName
+        );
+    }),
 
-                Actions\Action::make('downloadTemplate')
+            Actions\Action::make('downloadTemplate')
     ->label('Download Template')
     ->icon('heroicon-o-document-arrow-down')
     ->color('info')

@@ -2,116 +2,166 @@
 
 namespace App\Imports;
 
-use App\Models\KIPKuliah;
+use App\Models\KipKuliah;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Maatwebsite\Excel\Row;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
-class KIPKuliahImport implements
-    ToModel,
+class KipKuliahImport implements
+    OnEachRow,
     WithHeadingRow,
     WithChunkReading,
     WithBatchInserts,
     ShouldQueue
 {
-    public function model(array $row)
+    public function onRow(Row $row): void
     {
-        // 🔑 PDID WAJIB
-        if (empty($row['pdid'])) {
-            Log::warning('Skip row: PDID kosong', $row);
-            return null;
-        }
+        $data = $row->toArray();
 
-        $pdid = trim($row['pdid']);
+        try {
+            /* =====================
+             * VALIDASI DASAR
+             * ===================== */
+            if (empty($data['nik'])) {
+                return; // NIK wajib
+            }
 
-        // ❌ TOLAK jika PDID sudah ada
-        if (KIPKuliah::where('pdid', $pdid)->exists()) {
-            Log::info('Skip row: PDID sudah ada', [
-                'pdid' => $pdid,
-                'nama' => $row['nama_mahasiswa'] ?? null,
+            // Skip jika NIK sudah ada
+            if (KipKuliah::where('nik', trim($data['nik']))->exists()) {
+                return;
+            }
+
+            KipKuliah::create([
+
+                // IDENTITAS
+                'no_pendaftaran' => $this->null($data['no_pendaftaran'] ?? null),
+                'nama_siswa' => $this->null($data['nama_siswa'] ?? null),
+                'nik' => trim($data['nik']),
+                'no_kartu_keluarga' => $this->null($data['no_kartu_keluarga'] ?? null),
+                'nik_kepala_keluarga' => $this->null($data['nik_kepala_keluarga'] ?? null),
+                'nisn' => $this->nullableUnique($data['nisn'] ?? null),
+
+                // STATUS BANTUAN
+                'status_dtks' => $this->mapDtks($data['status_dtks'] ?? null),
+                'status_p3ke' => $this->mapP3ke($data['status_p3ke'] ?? null),
+
+                // BANTUAN
+                'no_kip' => $this->null($data['no_kip'] ?? null),
+                'no_kks' => $this->null($data['no_kks'] ?? null),
+
+                // SEKOLAH
+                'asal_sekolah' => $this->null($data['asal_sekolah'] ?? null),
+                'kab_kota_sekolah' => $this->null($data['kab_kota_sekolah'] ?? null),
+                'provinsi_sekolah' => $this->null($data['provinsi_sekolah'] ?? null),
+
+                // PRIBADI
+                'tempat_lahir' => $this->null($data['tempat_lahir'] ?? null),
+                'tanggal_lahir' => $this->parseTanggal($data['tanggal_lahir'] ?? null),
+                'jenis_kelamin' => $this->enum($data['jenis_kelamin'] ?? null, ['L', 'P']),
+
+                // KONTAK
+                'alamat_tinggal' => $this->null($data['alamat_tinggal'] ?? null),
+                'no_handphone' => $this->null($data['no_handphone'] ?? null),
+                'email' => $this->email($data['email'] ?? null),
+
+                // AYAH
+                'nama_ayah' => $this->null($data['nama_ayah'] ?? null),
+                'pekerjaan_ayah' => $this->null($data['pekerjaan_ayah'] ?? null),
+                'penghasilan_ayah' => $this->toInt($data['penghasilan_ayah'] ?? null),
+                'status_ayah' => $this->null($data['status_ayah'] ?? null),
+
+                // IBU
+                'nama_ibu' => $this->null($data['nama_ibu'] ?? null),
+                'pekerjaan_ibu' => $this->null($data['pekerjaan_ibu'] ?? null),
+                'penghasilan_ibu' => $this->toInt($data['penghasilan_ibu'] ?? null),
+                'status_ibu' => $this->null($data['status_ibu'] ?? null),
+
+                // EKONOMI
+                'jumlah_tanggungan' => $this->toInt($data['jumlah_tanggungan'] ?? null),
+                'kepemilikan_rumah' => $this->null($data['kepemilikan_rumah'] ?? null),
+                'tahun_perolehan' => $this->year($data['tahun_perolehan'] ?? null),
+                'sumber_listrik' => $this->null($data['sumber_listrik'] ?? null),
+                'luas_tanah' => $this->toInt($data['luas_tanah'] ?? null),
+                'luas_bangunan' => $this->toInt($data['luas_bangunan'] ?? null),
+                'sumber_air' => $this->null($data['sumber_air'] ?? null),
+                'mck' => $this->null($data['mck'] ?? null),
+                'jarak_pusat_kota_km' => $this->toDecimal($data['jarak_pusat_kota_km'] ?? null),
+
+                // PENGAJUAN
+                'diusulkan_oleh' => $this->null($data['diusulkan_oleh'] ?? null),
+                'pt_tujuan' => $this->null($data['pt_tujuan'] ?? null),
+                'prodi_rekomendasi' => $this->null($data['prodi_rekomendasi'] ?? null),
+                'status_pengajuan' => $this->null($data['status_pengajuan'] ?? null),
+                'tahun' => $this->year($data['tahun'] ?? null),
+                'rekomendasi' => $this->null($data['rekomendasi'] ?? null),
             ]);
-            return null;
+
+        } catch (\Throwable $e) {
+            Log::error('Import KipKuliah gagal', [
+                'row' => $row->getIndex(),
+                'nik' => $data['nik'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
         }
-
-        return new KIPKuliah([
-            'pdid' => $pdid,
-            'nama_mahasiswa' => $row['nama_mahasiswa'] ?? null,
-            'nama_perguruan_tinggi' => $row['nama_perguruan_tinggi'] ?? null,
-
-            'provinsi' => $row['provinsi'] ?? null,
-            'kabupaten' => $row['kabupaten'] ?? null,
-            'kecamatan' => $row['kecamatan'] ?? null,
-
-            'nik' => $row['nik'] ?? null,
-            'nisn' => $row['nisn'] ?? null,
-            'npsn' => $row['npsn'] ?? null,
-
-            'kelas' => $row['kelas'] ?? null,
-            'rombel' => $row['rombel'] ?? null,
-            'semester' => $row['semester'] ?? null,
-            'tahun' => $row['tahun'] ?? null,
-            'jenjang' => $row['jenjang'] ?? null,
-            'bentuk' => $row['bentuk'] ?? null,
-
-            'jenis_kelamin' => $row['jk'] ?? null,
-            'tempat_lahir' => $row['tempat_lahir'] ?? null,
-            'tanggal_lahir' => $this->parseTanggal($row['tanggal_lahir'] ?? null),
-
-            'nama_ayah' => $row['nama_ayah'] ?? null,
-            'nama_ibu' => $row['nama_ibu'] ?? null,
-            'nomor_hp' => $row['nomor_hp'] ?? null,
-
-            'nominal' => $this->parseNominal($row['nominal'] ?? null),
-
-            'tipe_sk' => $row['tipe_sk'] ?? null,
-            'nomor_sk' => $row['nomor_sk'] ?? null,
-            'nomor_sk_nominasi' => $row['nomor_sk_nominasi'] ?? null,
-            'tanggal_sk' => $this->parseTanggal($row['tanggal_sk'] ?? null),
-            'tanggal_sk_nominasi' => $this->parseTanggal($row['tanggal_sk_nominasi'] ?? null),
-
-            'tahap' => $row['tahap'] ?? null,
-            'tahap_nominasi' => $row['tahap_nominasi'] ?? null,
-
-            'virtual_account' => $row['virtual_account'] ?? null,
-            'virtual_account_nominasi' => $row['virtual_account_nominasi'] ?? null,
-            'no_rekening' => $row['no_rekening'] ?? null,
-            'bank' => $row['bank'] ?? null,
-
-            'tanggal_aktifasi' => $this->parseTanggal($row['tanggal_aktifasi'] ?? null),
-            'tanggal_mulai_pencairan' => $this->parseTanggal($row['tanggal_mulai_pencairan'] ?? null),
-            'tanggal_cair' => $this->parseTanggal($row['tanggal_cair'] ?? null),
-
-            'no_kip' => $row['no_kip'] ?? null,
-            'no_kks' => $row['no_kks'] ?? null,
-            'no_kps' => $row['no_kps'] ?? null,
-            'no_pkh' => $row['no_pkh'] ?? null,
-
-            'layak_pip' => $row['layak_pip'] ?? null,
-            'nama_pengusul' => $row['nama_pengusul'] ?? null,
-            'nama_pengusul_utama' => $row['nama_pengusul_utama'] ?? null,
-            'fase' => $row['fase'] ?? null,
-
-            'keterangan_tahap' => $row['keterangan_tahap'] ?? null,
-            'keterangan_pencairan' => $row['keterangan_pencairan'] ?? null,
-            'keterangan_tambahan' => $row['keterangan_tambahan'] ?? null,
-
-            'status' => $row['status'] ?? 'aktif',
-        ]);
     }
 
+    /* =====================
+     * QUEUE CONFIG
+     * ===================== */
     public function chunkSize(): int
     {
-        return 500;
+        return 200; // lebih aman
     }
 
     public function batchSize(): int
     {
-        return 500;
+        return 200;
+    }
+
+    /* =====================
+     * HELPER
+     * ===================== */
+    private function null($value)
+    {
+        return filled($value) ? trim((string) $value) : null;
+    }
+
+    private function nullableUnique($value)
+    {
+        return filled($value) ? trim((string) $value) : null;
+    }
+
+    private function toInt($value)
+    {
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    private function toDecimal($value)
+    {
+        return is_numeric($value) ? (float) $value : null;
+    }
+
+    private function year($value)
+    {
+        return is_numeric($value) && strlen((string) $value) === 4
+            ? (int) $value
+            : null;
+    }
+
+    private function enum($value, array $allowed)
+    {
+        return in_array($value, $allowed) ? $value : null;
+    }
+
+    private function email($value)
+    {
+        return filter_var($value, FILTER_VALIDATE_EMAIL) ? $value : null;
     }
 
     private function parseTanggal($value)
@@ -127,14 +177,32 @@ class KIPKuliahImport implements
 
             return Carbon::parse($value);
         } catch (\Throwable $e) {
-            Log::warning('Tanggal tidak valid', ['value' => $value]);
             return null;
         }
     }
 
-    private function parseNominal($value)
+    private function mapDtks($value)
     {
-        if (empty($value)) return null;
-        return (int) preg_replace('/[^0-9]/', '', $value);
+        return match (strtolower(trim((string) $value))) {
+            'terdata' => 'terdata',
+            'belum terdata', 'belum_terdata' => 'belum_terdata',
+            default => null,
+        };
+    }
+
+    private function mapP3ke($value)
+    {
+        $value = strtolower((string) $value);
+
+        return match (true) {
+            str_contains($value, 'desil 1') => 'desil_1',
+            str_contains($value, 'desil 2') => 'desil_2',
+            str_contains($value, 'desil 3') => 'desil_3',
+            str_contains($value, 'desil 4') => 'desil_4',
+            str_contains($value, 'desil 5') => 'desil_5',
+            str_contains($value, 'desil 6') => 'desil_6',
+            str_contains($value, 'desil 7') => 'desil_7',
+            default => 'belum_terdata',
+        };
     }
 }

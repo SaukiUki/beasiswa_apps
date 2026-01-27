@@ -12,41 +12,33 @@ class KipKuliahStats extends StatsOverviewWidget
     {
         $tahunIni = now()->year;
 
+        // Hitung sekali (lebih ringan)
+        $total = KipKuliah::count();
+        $laki = KipKuliah::where('jenis_kelamin', 'L')->count();
+        $perempuan = KipKuliah::where('jenis_kelamin', 'P')->count();
+        $tahunIniCount = KipKuliah::where('tahun', $tahunIni)->count();
+
         return [
 
-                    // 3️⃣ Total Mahasiswa Penerima KIP
-            Stat::make(
-                'Total Mahasiswa Penerima KIP',
-                KipKuliah::count()
-            )
-            ->icon('heroicon-o-academic-cap')
-            ->color('success'),
+            // Total penerima
+            Stat::make('Total Mahasiswa Penerima KIP', $total)
+                ->icon('heroicon-o-academic-cap')
+                ->color('success'),
 
-            // 1️⃣ Total Laki-Laki
-            Stat::make(
-                'Total  KIP Laki-Laki',
-                KipKuliah::where('jenis_kelamin', 'L')->count()
-            )
-            ->icon('heroicon-o-user')
-            ->color('indigo'),
+            // Laki-laki
+            Stat::make('Total KIP Laki-Laki', $laki)
+                ->icon('heroicon-o-user')
+                ->color('indigo'),
 
-            // 2️⃣ Total Perempuan
-            Stat::make(
-                'Total KIP Perempuan',
-                KipKuliah::where('jenis_kelamin', 'P')->count()
-            )
-            ->icon('heroicon-o-user-group')
-            ->color('pink'),
+            // Perempuan
+            Stat::make('Total KIP Perempuan', $perempuan)
+                ->icon('heroicon-o-user-group')
+                ->color('pink'),
 
-
-
-            // 4️⃣ Total Penerima Tahun Ini
-            Stat::make(
-                'Total Penerima Tahun Ini',
-                KipKuliah::where('tahun', $tahunIni)->count()
-            )
-            ->icon('heroicon-o-document-text')
-            ->color('warning'),
+            // Tahun berjalan
+            Stat::make("Total Penerima Tahun {$tahunIni}", $tahunIniCount)
+                ->icon('heroicon-o-calendar')
+                ->color('warning'),
         ];
     }
 }

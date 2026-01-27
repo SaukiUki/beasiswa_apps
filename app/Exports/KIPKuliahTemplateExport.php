@@ -6,68 +6,71 @@ use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class KIPKuliahTemplateExport implements
+class KipKuliahTemplateExport implements
     FromArray,
     WithHeadings,
     ShouldAutoSize
 {
     public function array(): array
     {
-        // ❗ kosong → hanya template
+        // Template kosong (header saja)
         return [];
     }
 
     public function headings(): array
     {
         return [
-            'pdid',
-            'nama_mahasiswa',
-            'nama_perguruan_tinggi',
-            'provinsi',
-            'kabupaten',
-            'kecamatan',
+            'no_pendaftaran',
+            'nama_siswa',
             'nik',
+            'no_kartu_keluarga',
+            'nik_kepala_keluarga',
             'nisn',
-            'npsn',
-            'kelas',
-            'rombel',
-            'semester',
-            'tahun',
-            'jenjang',
-            'bentuk',
-            'jk',
-            'tempat_lahir',
-            'tanggal_lahir',
-            'nama_ayah',
-            'nama_ibu',
-            'nomor_hp',
-            'nominal',
-            'tipe_sk',
-            'nomor_sk',
-            'nomor_sk_nominasi',
-            'tanggal_sk',
-            'tanggal_sk_nominasi',
-            'tahap',
-            'tahap_nominasi',
-            'virtual_account',
-            'virtual_account_nominasi',
-            'no_rekening',
-            'bank',
-            'tanggal_aktifasi',
-            'tanggal_mulai_pencairan',
-            'tanggal_cair',
+
+            'status_dtks',
+            'status_p3ke',
+
             'no_kip',
             'no_kks',
-            'no_kps',
-            'no_pkh',
-            'layak_pip',
-            'nama_pengusul',
-            'nama_pengusul_utama',
-            'fase',
-            'keterangan_tahap',
-            'keterangan_pencairan',
-            'keterangan_tambahan',
-            'status',
+
+            'asal_sekolah',
+            'kab_kota_sekolah',
+            'provinsi_sekolah',
+
+            'tempat_lahir',
+            'tanggal_lahir',
+            'jenis_kelamin',
+
+            'alamat_tinggal',
+            'no_handphone',
+            'alamat_email',
+
+            'nama_ayah',
+            'pekerjaan_ayah',
+            'penghasilan_ayah',
+            'status_ayah',
+
+            'nama_ibu',
+            'pekerjaan_ibu',
+            'penghasilan_ibu',
+            'status_ibu',
+
+            'jumlah_tanggungan',
+            'kepemilikan_rumah',
+            'tahun_perolehan',
+            'sumber_listrik',
+            'luas_tanah',
+            'luas_bangunan',
+            'sumber_air',
+            'mck',
+            'jarak_pusat_kota_km',
+
+            'diusulkan_oleh',
+            'pt_tujuan',
+            'prodi_rekomendasi',
+            'status_pengajuan',
+            'tahun',
+            'rekomendasi',
         ];
     }
 }

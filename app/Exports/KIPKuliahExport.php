@@ -2,14 +2,14 @@
 
 namespace App\Exports;
 
-use App\Models\KIPKuliah;
+use App\Models\KipKuliah;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class KIPKuliahExport implements
+class KipKuliahExport implements
     FromQuery,
     WithHeadings,
     WithMapping,
@@ -18,118 +18,151 @@ class KIPKuliahExport implements
 {
     public function query()
     {
-        return KIPKuliah::query()->orderBy('kabupaten');
+        // ❗ pakai kolom yang PASTI ADA
+        return KipKuliah::query()->orderBy('nama_siswa');
     }
 
     public function headings(): array
     {
         return [
-            'pdid',
-            'nama_mahasiswa',
-            'nama_perguruan_tinggi',
-            'provinsi',
-            'kabupaten',
-            'kecamatan',
-            'nik',
-            'nisn',
-            'npsn',
-            'kelas',
-            'rombel',
-            'tahun',
-            'tahun',
-            'jenjang',
-            'bentuk',
-            'jenis_kelamin',
-            'tempat_lahir',
-            'tanggal_lahir',
-            'nama_ayah',
-            'nama_ibu',
-            'nomor_hp',
-            'nominal',
-            'tipe_sk',
-            'nomor_sk',
-            'nomor_sk_nominasi',
-            'tanggal_sk',
-            'tanggal_sk_nominasi',
-            'tahap',
-            'tahap_nominasi',
-            'virtual_account',
-            'virtual_account_nominasi',
-            'no_rekening',
-            'bank',
-            'tanggal_aktifasi',
-            'tanggal_mulai_pencairan',
-            'tanggal_cair',
-            'no_kip',
-            'no_kks',
-            'no_kps',
-            'no_pkh',
-            'layak_pip',
-            'nama_pengusul',
-            'nama_pengusul_utama',
-            'fase',
-            'keterangan_tahap',
-            'keterangan_pencairan',
-            'keterangan_tambahan',
-            'status',
+            'No. Pendaftaran',
+            'Nama Siswa',
+            'NIK',
+            'No. Kartu Keluarga',
+            'NIK Kepala Keluarga',
+            'NISN',
+
+            'Status DTKS',
+            'Status P3KE',
+
+            'No. KIP',
+            'No. KKS',
+
+            'Asal Sekolah',
+            'Kab/Kota Sekolah',
+            'Provinsi Sekolah',
+
+            'Tempat Lahir',
+            'Tanggal Lahir',
+            'Jenis Kelamin',
+
+            'Alamat Tinggal',
+            'No. Handphone',
+            'Alamat Email',
+
+            'Nama Ayah',
+            'Pekerjaan Ayah',
+            'Penghasilan Ayah',
+            'Status Ayah',
+
+            'Nama Ibu',
+            'Pekerjaan Ibu',
+            'Penghasilan Ibu',
+            'Status Ibu',
+
+            'Jumlah Tanggungan',
+            'Kepemilikan Rumah',
+            'Tahun Perolehan',
+            'Sumber Listrik',
+            'Luas Tanah',
+            'Luas Bangunan',
+            'Sumber Air',
+            'MCK',
+            'Jarak Pusat Kota (KM)',
+
+            'Diusulkan Oleh',
+            'PT Tujuan',
+            'Prodi Rekomendasi',
+            'Status Pengajuan',
+            'Tahun',
+            'Rekomendasi',
         ];
     }
 
     public function map($row): array
     {
         return [
-            $row->pdid,
-            $row->nama_mahasiswa,
-            $row->nama_perguruan_tinggi,
-            $row->provinsi,
-            $row->kabupaten,
-            $row->kecamatan,
+            $row->no_pendaftaran,
+            $row->nama_siswa,
             $row->nik,
+            $row->no_kartu_keluarga,
+            $row->nik_kepala_keluarga,
             $row->nisn,
-            $row->npsn,
-            $row->kelas,
-            $row->rombel,
-            $row->semester,
-            $row->jenjang,
-            $row->bentuk,
-            $row->jenis_kelamin,
-            $row->tempat_lahir,
-            optional($row->tanggal_lahir)->format('Y-m-d'),
-            $row->nama_ayah,
-            $row->nama_ibu,
-            $row->nomor_hp,
-            $row->nominal,
-            $row->tipe_sk,
-            $row->nomor_sk,
-            $row->nomor_sk_nominasi,
-            optional($row->tanggal_sk)->format('Y-m-d'),
-            optional($row->tanggal_sk_nominasi)->format('Y-m-d'),
-            $row->tahap,
-            $row->tahap_nominasi,
-            $row->virtual_account,
-            $row->virtual_account_nominasi,
-            $row->no_rekening,
-            $row->bank,
-            optional($row->tanggal_aktifasi)->format('Y-m-d'),
-            optional($row->tanggal_mulai_pencairan)->format('Y-m-d'),
-            optional($row->tanggal_cair)->format('Y-m-d'),
+
+            $this->labelDtks($row->status_dtks),
+            $this->labelP3ke($row->status_p3ke),
+
             $row->no_kip,
             $row->no_kks,
-            $row->no_kps,
-            $row->no_pkh,
-            $row->layak_pip,
-            $row->nama_pengusul,
-            $row->nama_pengusul_utama,
-            $row->fase,
-            $row->keterangan_tahap,
-            $row->keterangan_pencairan,
-            $row->keterangan_tambahan,
-            $row->status,
+
+            $row->asal_sekolah,
+            $row->kab_kota_sekolah,
+            $row->provinsi_sekolah,
+
+            $row->tempat_lahir,
+            optional($row->tanggal_lahir)->format('Y-m-d'),
+            $row->jenis_kelamin,
+
+            $row->alamat_tinggal,
+            $row->no_handphone,
+            $row->email,
+
+            $row->nama_ayah,
+            $row->pekerjaan_ayah,
+            $row->penghasilan_ayah,
+            $row->status_ayah,
+
+            $row->nama_ibu,
+            $row->pekerjaan_ibu,
+            $row->penghasilan_ibu,
+            $row->status_ibu,
+
+            $row->jumlah_tanggungan,
+            $row->kepemilikan_rumah,
+            $row->tahun_perolehan,
+            $row->sumber_listrik,
+            $row->luas_tanah,
+            $row->luas_bangunan,
+            $row->sumber_air,
+            $row->mck,
+            $row->jarak_pusat_kota_km,
+
+            $row->diusulkan_oleh,
+            $row->pt_tujuan,
+            $row->prodi_rekomendasi,
+            $row->status_pengajuan,
+            $row->tahun,
+            $row->rekomendasi,
         ];
     }
 
     public function chunkSize(): int
     {
         return 500;
+    }
+
+    /* ================= HELPER ================= */
+
+    private function labelDtks($value): string
+    {
+        return match ($value) {
+            'terdata' => 'Terdata',
+            'belum_terdata' => 'Belum Terdata',
+            default => '',
+        };
+    }
+
+    private function labelP3ke($value): string
+    {
+        return match ($value) {
+            'desil_1' => 'Terdata : Desil 1',
+            'desil_2' => 'Terdata : Desil 2',
+            'desil_3' => 'Terdata : Desil 3',
+            'desil_4' => 'Terdata : Desil 4',
+            'desil_5' => 'Terdata : Desil 5',
+            'desil_6' => 'Terdata : Desil 6',
+            'desil_7' => 'Terdata : Desil 7',
+            default => 'Belum Terdata',
+        };
     }
 }
