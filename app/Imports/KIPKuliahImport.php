@@ -5,7 +5,7 @@ namespace App\Imports;
 use App\Models\KipKuliah;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Contracts\Queue\ShouldQueue;
+// use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -17,8 +17,8 @@ class KipKuliahImport implements
     OnEachRow,
     WithHeadingRow,
     WithChunkReading,
-    WithBatchInserts,
-    ShouldQueue
+    WithBatchInserts
+    
 {
     public function onRow(Row $row): void
     {

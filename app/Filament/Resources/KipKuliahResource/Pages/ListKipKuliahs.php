@@ -66,30 +66,40 @@ class ListKipKuliahs extends ListRecords
                 ])
                 ->action(function (array $data) {
 
-                    $relativePath = $data['file'];
+                $relativePath = $data['file'];
 
-                    if (! Storage::disk('local')->exists($relativePath)) {
-                        Notification::make()
-                            ->title('File tidak ditemukan')
-                            ->danger()
-                            ->send();
+                if (! Storage::disk('local')->exists($relativePath)) {
+                    Notification::make()
+                        ->title('File tidak ditemukan')
+                        ->danger()
+                        ->send();
+                    return;
+                }
 
-                        return;
-                    }
-
-                    // ✅ IMPORT VIA QUEUE
-                    Excel::queueImport(
+                try {
+                    Excel::import(
                         new KIPKuliahImport,
                         $relativePath,
                         'local'
                     );
 
                     Notification::make()
-                        ->title('Import diproses')
-                        ->body('File berhasil diunggah. Import berjalan di background.')
+                        ->title('Import berhasil')
+                        ->body('Data berhasil diimpor.')
                         ->success()
                         ->send();
-                }),
+
+                } catch (\Throwable $e) {
+                    logger($e);
+
+                    Notification::make()
+                        ->title('Import gagal')
+                        ->body($e->getMessage())
+                        ->danger()
+                        ->send();
+                }
+            }),
+
 
             /* =============================
              * EXPORT EXCEL
